@@ -1,0 +1,30 @@
+﻿@using System.Xml.Linq
+@model XElement
+
+@{
+    ViewBag.Title = "Uppgift 3 - Beviljade Tider";
+}
+
+<h2>Uppgift 3 - Beviljade Tider</h2>
+
+<table table class="table-bordered table_100" style="text-align:center;">
+    <thead>
+        <tr>
+            <th>Startdatum</th>
+            <th>Slutdatum</th>
+            <th>Typ</th>
+            <th>Summa</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var kurs in Model.Elements("BeviljadTidsPeriod"))
+        {
+        <tr>
+            <td>@((string)kurs.Element("Startdatum"))</td>
+            <td>@((string)kurs.Element("Slutdatum"))</td>
+            <td>@((string)kurs.Element("Typ"))</td>
+            <td>@((string)kurs.Element("Summa"))</td>
+        </tr>
+        }
+    </tbody>
+</table>

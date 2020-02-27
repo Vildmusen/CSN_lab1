@@ -1,0 +1,77 @@
+﻿@using System.Xml.Linq
+@model XElement
+
+@{
+    ViewBag.Title = "Uppgift 1 - Utbetalningar per ärende";
+}
+
+<h2>Uppgift 1 - Utbetalningar per ärende</h2>
+
+@{
+    int curArende = Int32.Parse(Model.Elements("Utbetalning").ElementAt(0).Element("Arendenummer").Value);
+    int numberOfTables = Int32.Parse(Model.Element("NrOfTables").Value);
+    int curTable = 0;
+    int sumValuesPerTable = 2;
+    int index = 0;
+    int offset = 0;
+    // Extract total sums of all "Arenden" into a separate xml-object.
+    XElement totals = new XElement("totals", Model.Elements("UtbetalningsTotaler2009").Elements("UtbetalningsTotal"));
+}
+
+@while (curTable < numberOfTables)
+{
+    // Since both "ubetalningar" and "utbetalningartotals" are sorted, we use an offest to connect the correct values to the correct tables.
+    offset = curTable * sumValuesPerTable;
+
+    <h1>Ärende @((string)Model.Elements("Utbetalning").ElementAt(index).Element("Arendenummer").Value)</h1>
+    <p>Bidrag: @((string)totals.Elements("UtbetalningsTotal").ElementAt(offset).Element("Beskrivning").Value)</p>
+
+    <table table class="table-bordered table_50">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Status</th>
+                <th>Summa</th>
+            </tr>
+        </thead>
+        <tbody>
+            @* While we still are on the same "Arendenummer", keep adding row to the current table. *@
+            @while (index < Model.Elements("Utbetalning").Count() && Int32.Parse(Model.Elements("Utbetalning").ElementAt(index).Element("Arendenummer").Value) == curArende)
+            {
+                <tr>
+                    <td>@((string)Model.Elements("Utbetalning").ElementAt(index).Element("UtbetDatum"))</td>
+                    <td>@((string)Model.Elements("Utbetalning").ElementAt(index).Element("UtbetStatus"))</td>
+                    <td>@((string)Model.Elements("Utbetalning").ElementAt(index).Element("Summa"))</td>
+                </tr>
+                index++;
+            }
+
+            @{
+                // Summary-rows for each table, with info taken from totals instead of Model
+                int remaining = Int32.Parse(totals.Elements("UtbetalningsTotal").ElementAt(offset).Element("Summa").Value);
+                int spent = Int32.Parse(totals.Elements("UtbetalningsTotal").ElementAt(offset + 1).Element("Summa").Value);
+                
+                <tr>
+                    <td>Total summa:</td>
+                    <td>@(remaining + spent)</td>
+                </tr>
+                <tr>
+                    <td>Utbetald summa:</td>
+                    <td>@spent</td>
+                </tr>
+                <tr>
+                    <td>Kvarvarande summa:</td>
+                    <td>@remaining</td>
+                </tr>
+
+                if (index < Model.Elements("Utbetalning").Count()) 
+                {
+                    curArende = Int32.Parse(Model.Elements("Utbetalning").ElementAt(index).Element("Arendenummer").Value);
+                }
+                curTable++;
+            }
+        </tbody>
+    </table>
+}
+
+
