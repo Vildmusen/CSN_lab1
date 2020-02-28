@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Web.Hosting;
@@ -99,13 +100,43 @@ namespace LaborationCSN.Controllers
             return View(payouts);
         }
 
-
-        //
-        // GET: /Csn/Uppgift2
-
+        /// <summary>
+        /// Groups payment by date and type. Creates an Xml-object to display in uppgift2.cshtml.
+        /// </summary>
+        /// <returns></returns>
         public ActionResult Uppgift2()
         {
-            return View();
+            string query = "SELECT UtBetDatum, bt.Beskrivning, sum(bp.Belopp * ((utb.Sluttid - utb.Starttid) + 1)) AS Utbetalningar FROM Utbetalning ut " +
+                "JOIN UtbetaldTid utb ON ut.UtbetID = utb.UtbetID " +
+                "JOIN UtbetaldTid_Belopp ub ON utb.UtbetTidID = ub.UtbetaldTidID " +
+                "JOIN Belopp bp ON ub.BeloppID = bp.BeloppID " +
+                "JOIN Beloppstyp bt ON Bp.Beloppstypkod = bt.Beloppstypkod " +
+                "WHERE UtbetStatus = 'Utbetald' " +
+                "GROUP BY UtbetDatum, bt.Beskrivning";
+
+            XElement payments = SQLResult(query, "Payments", "Payment");
+
+            XElement paymentTotals =
+                new XElement("Datumbetalningar",
+                        (from p1 in payments.Descendants("Payment")
+                         group p1 by p1.Element("UtbetDatum").Value into pp
+                         select new XElement("Datumbetalning",
+                             new XElement("Datum", pp.Key),
+                             new XElement("Totalsumma",
+                                 (from p2 in payments.Descendants("Payment")
+                                  where p2.Element("UtbetDatum").Value == pp.Key
+                                  select (int)p2.Element("Utbetalningar")).Sum()),
+                                new XElement("Betalning",
+                                    new XElement("Typ",
+                                        (from p3 in payments.Descendants("Payment")
+                                        where p3.Element("UtbetDatum").Value == pp.Key
+                                        select p3.Element("Beskrivning"))),
+                                    new XElement("Summa",
+                                        (from p3 in payments.Descendants("Payment")
+                                        where p3.Element("UtbetDatum").Value == pp.Key
+                                        select p3.Element("Utbetalningar")))))));
+
+            return View(paymentTotals);
         }
 
         /// <summary>

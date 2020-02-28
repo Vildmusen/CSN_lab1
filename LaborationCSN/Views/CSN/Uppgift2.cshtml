@@ -2,7 +2,41 @@
 @model XElement
 
 @{
-    ViewBag.Title = "Uppgift 2 - Utbetalningar och bidragstyper";
+    ViewBag.Title = "Uppgift 2 - Utbetalningar och Bidragstyper";
 }
 
-<h2>Uppgift 2 - Utbetalningar och bidragstyper</h2>
+<h2>Uppgift 2 - Utbetalningar och Bidragstyper</h2>
+
+<table table class="table-bordered table_50">
+    <thead>
+        <tr>
+            <th>Datum</th>
+            <th>Totalsumma</th>
+            <th>Utbetalningar</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var kurs in Model.Elements("Datumbetalning"))
+        {
+            <tr>
+                <td>@((string)kurs.Element("Datum"))</td>
+                <td>@((string)kurs.Element("Totalsumma"))</td>
+                <td>
+                    <table table class="table-bordered table_100">
+                        @for (int i = 0; i < kurs.Element("Betalning").Element("Typ").Elements("Beskrivning").Count(); i++)
+                        {
+                        <tr>
+                            <td>
+                                @((string)kurs.Element("Betalning").Element("Typ").Elements("Beskrivning").ElementAt(i))
+                            </td>
+                            <td>
+                                @((string)kurs.Element("Betalning").Element("Summa").Elements("Utbetalningar").ElementAt(i))
+                            </td>
+                        </tr>
+                        }
+                    </table>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
